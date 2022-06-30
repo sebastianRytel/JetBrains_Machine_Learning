@@ -24,3 +24,39 @@ def main():
 
 if __name__ == '__main__':
     main()
+
+STAGE 2
+
+import keras.datasets.mnist
+import pandas as pd
+import tensorflow as tf
+import numpy as np
+from sklearn.model_selection import train_test_split
+
+tf.keras.datasets.mnist.load_data(path="mnist.npz")
+
+(x_train_full_data, y_train_full_data), (x_test_full_data, y_test_full_data) = keras.datasets.mnist.load_data()
+
+
+def main():
+    x_train_2d = np.array([x_train_full_data[i].flatten() for i in range(len(x_train_full_data))])
+
+    x_train_samples = x_train_2d[:6000]
+    y_train_samples = y_train_full_data[:6000]
+
+    X_train_samples, X_test_samples, y_train_samples, y_test_samples = train_test_split(x_train_samples,
+                                                                                        y_train_samples,
+                                                                                        test_size=0.3, random_state=40)
+
+    samples_proportion = pd.Series(y_train_samples).value_counts(normalize=True)
+
+    print(f"x_train shape: {np.array(X_train_samples).shape}")
+    print(f"x_test shape: {np.array(X_test_samples).shape}")
+    print(f"y_train shape: {np.array(y_train_samples).shape}")
+    print(f"y_test shape: {np.array(y_test_samples).shape}")
+    print("Proportion of samples per class in train set:")
+    print(samples_proportion.round(2))
+
+
+if __name__ == '__main__':
+    main()
