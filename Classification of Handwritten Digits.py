@@ -138,3 +138,99 @@ def main():
 
 if __name__ == '__main__':
     main()
+
+====================== STAGE 4 ======================
+    
+import keras.datasets.mnist
+import tensorflow as tf
+import numpy as np
+from sklearn.model_selection import train_test_split
+from sklearn.neighbors import KNeighborsClassifier
+from sklearn.linear_model import LogisticRegression
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.tree import DecisionTreeClassifier
+from sklearn.preprocessing import Normalizer
+
+from sklearn.metrics import precision_score
+
+tf.keras.datasets.mnist.load_data(path="mnist.npz")
+
+(x_train_full_data, y_train_full_data), (x_test_full_data, y_test_full_data) = keras.datasets.mnist.load_data()
+
+
+def fit_predict_eval(model, features_train, features_test, target_train, target_test):
+    model.fit(features_train, target_train)
+    pred = model.predict(features_test)
+    score = precision_score(pred, target_test, average='macro')
+    print(f'Model: {model}\nAccuracy: {score}\n')
+    return score
+
+def main():
+    x_train_2d = np.array([x_train_full_data[i].flatten() for i in range(len(x_train_full_data))])
+
+    x_train_samples = x_train_2d[:6000]
+    y_train_samples = y_train_full_data[:6000]
+
+    X_train_samples, X_test_samples, y_train_samples, y_test_samples = train_test_split(x_train_samples,
+                                                                                        y_train_samples,
+                                                                                        test_size=0.3, random_state=40)
+
+    transformer = Normalizer()
+
+    X_train_norm = transformer.transform(X_train_samples)
+    X_test_norm = transformer.transform(X_test_samples)
+
+    k_nearest = KNeighborsClassifier()
+    logistic_regr = LogisticRegression()
+    random_forest = RandomForestClassifier(random_state=40)
+    decision_tree = DecisionTreeClassifier(random_state=40)
+
+    score_k_nearest = fit_predict_eval(model=k_nearest,
+                     # features_train=X_train_samples,
+                     features_train=X_train_norm,
+                     # features_test=X_test_samples,
+                     features_test=X_test_norm,
+                     target_train=y_train_samples,
+                     target_test=y_test_samples)
+
+    score_decision_tree = fit_predict_eval(model=decision_tree,
+                        # features_train=X_train_samples,
+                        features_train=X_train_norm,
+                        # features_test=X_test_samples,
+                        features_test=X_test_norm,
+                        target_train=y_train_samples,
+                        target_test=y_test_samples)
+
+    score_logistic_regr = fit_predict_eval(model=logistic_regr,
+                        # features_train=X_train_samples,
+                        features_train=X_train_norm,
+                        # features_test=X_test_samples,
+                        features_test=X_test_norm,
+                        target_train=y_train_samples,
+                        target_test=y_test_samples)
+
+
+    score_random_forest = fit_predict_eval(model=random_forest,
+                        # features_train=X_train_samples,
+                        features_train=X_train_norm,
+                        # features_test=X_test_samples,
+                        features_test=X_test_norm,
+                        target_train=y_train_samples,
+                        target_test=y_test_samples)
+
+
+    dict_of_scores = {"KNeighborsClassifier": score_k_nearest,
+                      "DecisionTreeClassifier": score_decision_tree,
+                      "LogisticRegression": score_logistic_regr,
+                      "RandomForestClassifier": score_random_forest,
+                      }
+
+    classifiers = sorted(dict_of_scores.items(), key=lambda item: item[1], reverse=True)
+    best_first_classifier = classifiers[0]
+    best_second_classifier = classifiers[1]
+
+    print("The answer to the 1st question: yes")
+    print(f"The answer to the 2nd question: {best_first_classifier[0]}-{np.round(best_first_classifier[1], 3)}, {best_second_classifier[0]}-{np.round(best_second_classifier[1], 3)}")
+
+if __name__ == '__main__':
+    main()
