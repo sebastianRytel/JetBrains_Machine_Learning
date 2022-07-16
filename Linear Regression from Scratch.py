@@ -1,3 +1,5 @@
+============ STAGE2 ============ 
+
 import pandas as pd
 import numpy as np
 
@@ -18,7 +20,7 @@ class CustomLinearRegression:
         eq_two = matrix_t @ y
         final = np.linalg.inv(eq_one) @ eq_two
         self.intercept = float(np.array(final)[0][0])
-        self.coefficient = np.array(np.array(final)[0][1])
+        self.coefficient = np.array(final)[0][1:]
 
         return {'Intercept': self.intercept, 'Coefficient': self.coefficient}
 
@@ -27,7 +29,7 @@ class CustomLinearRegression:
         eq_one = matrix_t @ X
         eq_two = matrix_t @ y
         final = np.linalg.inv(eq_one) @ eq_two
-        self.coefficient = np.array((final))
+        self.coefficient = np.array(final)
         return {'Intercept': self.intercept, 'Coefficient': self.coefficient}
 
     def fit(self, X, y):
@@ -37,7 +39,7 @@ class CustomLinearRegression:
 
     def predict(self, X):
         X = np.matrix(X)
-        return np.array(X @ self.coefficient)[0]
+        return np.array(X @ self.coefficient)
 
 
 data = {'x': [4, 4.5, 5, 5.5, 6, 6.5, 7],
