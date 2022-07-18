@@ -148,3 +148,99 @@ rmse = regCustom.rmse(df['y'], y_pred)
 
 print(regCustom.final_results())
 
+============ STAGE4 ============
+
+import pandas as pd
+import numpy as np
+
+from sklearn.linear_model import LinearRegression
+from sklearn.metrics import mean_squared_error, r2_score
+
+
+class CustomLinearRegression:
+
+    def __init__(self, *, fit_intercept):
+
+        self.fit_intercept = fit_intercept
+        self.coefficient = ...
+        self.intercept = ...
+        self.r2_score_result = ...
+        self.rmse_result = ...
+        self.matrix_w_ones = ...
+
+    def fit_w_intercept(self, X, y):
+        ones_numbers = [1 for _ in range(X.shape[0])]
+        X.insert(0, "ones", ones_numbers)
+        self.matrix_w_ones = X.copy(deep=True)
+        matrix_t = self.matrix_w_ones.T
+        eq_one = matrix_t @ X
+        eq_two = matrix_t @ y
+        final = np.linalg.inv(eq_one) @ eq_two
+        self.intercept = float(np.array(final)[0])
+        self.coefficient = final[1:]
+
+    def fit_without_intercept(self, X, y):
+        matrix_t = X.T
+        eq_one = matrix_t @ X
+        eq_two = matrix_t @ y
+        final = np.linalg.inv(eq_one) @ eq_two
+        self.coefficient = final
+
+
+    def fit(self, X, y):
+        if self.fit_intercept:
+            return self.fit_w_intercept(X, y)
+        return self.fit_without_intercept(X, y)
+
+    def predict(self, X):
+        if self.fit_intercept:
+            coefficients = np.append(self.intercept, self.coefficient)
+            return self.matrix_w_ones @ coefficients
+        return np.array(X @ self.coefficient)
+
+    def r2_score(self, y, ythat):
+
+        eq_top = sum([(yi - yithat)**2 for yi, yithat in zip(y, ythat)])
+        eq_bottom = sum([(yi - np.mean(y))**2 for yi in y])
+
+        self.r2_score_result = 1 - (eq_top / eq_bottom)
+        return self.r2_score_result
+
+    def rmse(self, y, ythat):
+        eq_top = sum([(yi - yithat) ** 2 for yi, yithat in zip(y, ythat)])
+        eq_semi = eq_top / len(y)
+        self.rmse_result = eq_semi**0.5
+        return self.rmse_result
+
+    def final_results(self):
+        return {"Intercept": self.intercept,
+                "Coefficient": self.coefficient,
+                "R2": self.r2_score_result,
+                "RMSE": self.rmse_result}
+
+
+
+data = pd.read_csv('data_stage4.csv')
+
+regCustom = CustomLinearRegression(fit_intercept=True)
+regCustom.fit(data[['f1', 'f2', 'f3']], data['y'])
+y_pred_custom = regCustom.predict(data[['f1', 'f2', 'f3']])
+r2_score_custom = regCustom.r2_score(data['y'], y_pred_custom)
+rmse_custom = regCustom.rmse(data['y'], y_pred_custom)
+
+custom_regression_metrics = regCustom.final_results()
+
+linear_regression = LinearRegression()
+linear_regression.fit(data[['f1', 'f2', 'f3']], data['y'])
+y_pred = linear_regression.predict(data[['f1', 'f2', 'f3']])
+r2_score_sklearn = r2_score(data['y'], y_pred)
+rmse_sklearn = mean_squared_error(data['y'], y_pred, squared=False)
+
+sklearn_metrics = {"Intercept": linear_regression.intercept_,
+                    "Coefficient": linear_regression.coef_,
+                    "R2": r2_score_sklearn,
+                    "RMSE": rmse_sklearn}
+
+result = {key: custom_regression_metrics[key] - sklearn_metrics[key] for key in sklearn_metrics.keys()}
+
+print(result)
